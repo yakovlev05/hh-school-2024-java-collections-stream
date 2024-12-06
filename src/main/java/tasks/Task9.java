@@ -41,7 +41,8 @@ public class Task9 {
     // Использовал Optional для обработки null
     return String.join(" ",
         Optional.ofNullable(person.secondName()).orElse(""),
-        Optional.ofNullable(person.firstName()).orElse(""));
+        Optional.ofNullable(person.firstName()).orElse(""),
+        Optional.ofNullable(person.middleName()).orElse(""));
   }
 
   // словарь id персоны -> ее имя
@@ -55,12 +56,8 @@ public class Task9 {
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
     // Возвращаем true сразу, необязательно полностью пробегать
     Set<Person> setPersons1 = new HashSet<>(persons1); // Можно использовать set для проверки вхождения, т.к. такая операция O(1)
-    for (Person person : persons2) {
-      if (setPersons1.contains(person)) {
-        return true; // содержит
-      }
-    }
-    return false; // не содержит
+    return persons2.stream()
+        .anyMatch(setPersons1::contains);
   }
 
   // Посчитать число четных чисел
