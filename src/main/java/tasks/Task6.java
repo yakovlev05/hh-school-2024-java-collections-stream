@@ -20,15 +20,20 @@ public class Task6 {
   public static Set<String> getPersonDescriptions(Collection<Person> persons,
                                                   Map<Integer, Set<Integer>> personAreaIds,
                                                   Collection<Area> areas) {
-    Map<Integer, String> areaIdName = areas.stream()
-        .collect(Collectors.toMap(Area::getId, Area::getName));
+    Map<Integer, Area> areaIdName = areas.stream()
+        .collect(Collectors.toMap(Area::getId, area -> area));
 
     return persons.stream()
-        .flatMap(p -> personAreaIds.get(p.id())
+        .flatMap(person -> personAreaIds.get(person.id())
             .stream()
-            .map(a -> "%s - %s".formatted(
-                p.firstName(),
-                areaIdName.get(a))))
+            .map(area -> getDescription(person, areaIdName.get(area))))
         .collect(Collectors.toSet());
+  }
+
+  private static String getDescription(Person person, Area area) {
+    return "%s - %s".formatted(
+        person.firstName(),
+        area.getName()
+    );
   }
 }
