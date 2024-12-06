@@ -3,9 +3,10 @@ package tasks;
 import common.Person;
 import common.PersonService;
 
-import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /*
 Задача 1
@@ -24,17 +25,20 @@ public class Task1 {
 
   public List<Person> findOrderedPersons(List<Integer> personIds) {
     Set<Person> persons = personService.findPersons(personIds);
-    return persons.stream()
-        .sorted(Comparator.comparingInt(p -> personIds.indexOf(p.id())))
+
+    Map<Integer, Person> idToPerson = persons.stream()
+        .collect(Collectors.toMap(Person::id, person -> person));
+
+    return personIds.stream()
+        .map(idToPerson::get)
         .toList();
   }
 }
 /*
 Оценка сложности
-пусть n - длина persons и personIds (они одинаковые)
 
-Метод indexOf работает за O(n) - пробегает весь список в худшем случае
-Метод sorted() использует TimSort (прочитал в инете), его сложность nlog(n)
+Сложность - O(n)
 
-В итоге (мб ошибаюсь): O(nlog(n) + n*n)
+Пробежать по коллекции - O(n)
+Доступ к HashMap по ключу - O(1)
 */
