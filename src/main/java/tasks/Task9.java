@@ -1,14 +1,8 @@
 package tasks;
 
 import common.Person;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -26,64 +20,52 @@ public class Task9 {
   // Костыль, эластик всегда выдает в топе "фальшивую персону".
   // Конвертируем начиная со второй
   public List<String> getNames(List<Person> persons) {
-    if (persons.size() == 0) {
-      return Collections.emptyList();
-    }
-    persons.remove(0);
-    return persons.stream().map(Person::firstName).collect(Collectors.toList());
+    // Учитываем, что нужно начинать со второго
+    // Если список пустой, то ошибки не будет
+    return persons.stream()
+        .skip(1)
+        .map(Person::firstName)
+        .collect(Collectors.toList());
   }
 
   // Зачем-то нужны различные имена этих же персон (без учета фальшивой разумеется)
   public Set<String> getDifferentNames(List<Person> persons) {
-    return getNames(persons).stream().distinct().collect(Collectors.toSet());
+    // Множество по определению содержит уникальные элементы
+    // Используем метод getNames
+    return new HashSet<>(getNames(persons));
   }
 
   // Тут фронтовая логика, делаем за них работу - склеиваем ФИО
   public String convertPersonToString(Person person) {
-    String result = "";
-    if (person.secondName() != null) {
-      result += person.secondName();
-    }
-
-    if (person.firstName() != null) {
-      result += " " + person.firstName();
-    }
-
-    if (person.secondName() != null) {
-      result += " " + person.secondName();
-    }
-    return result;
+    // Убрал дублирование secondName
+    // Использовал Optional для обработки null
+    return String.join(" ",
+        Optional.ofNullable(person.secondName()).orElse(""),
+        Optional.ofNullable(person.firstName()).orElse(""),
+        Optional.ofNullable(person.middleName()).orElse(""));
   }
 
   // словарь id персоны -> ее имя
   public Map<Integer, String> getPersonNames(Collection<Person> persons) {
-    Map<Integer, String> map = new HashMap<>(1);
-    for (Person person : persons) {
-      if (!map.containsKey(person.id())) {
-        map.put(person.id(), convertPersonToString(person));
-      }
-    }
-    return map;
+    // По условию при дубликатах мы оставляем первый вариант - это учтено
+    return persons.stream()
+        .collect(Collectors.toMap(Person::id, Person::firstName, (current, replace) -> current));
   }
 
   // есть ли совпадающие в двух коллекциях персоны?
   public boolean hasSamePersons(Collection<Person> persons1, Collection<Person> persons2) {
-    boolean has = false;
-    for (Person person1 : persons1) {
-      for (Person person2 : persons2) {
-        if (person1.equals(person2)) {
-          has = true;
-        }
-      }
-    }
-    return has;
+    // Возвращаем true сразу, необязательно полностью пробегать
+    Set<Person> setPersons1 = new HashSet<>(persons1); // Можно использовать set для проверки вхождения, т.к. такая операция O(1)
+    return persons2.stream()
+        .anyMatch(setPersons1::contains);
   }
 
   // Посчитать число четных чисел
   public long countEven(Stream<Integer> numbers) {
-    count = 0;
-    numbers.filter(num -> num % 2 == 0).forEach(num -> count++);
-    return count;
+    // Убрал лишние действия
+    return numbers
+        .filter(num -> num % 2 == 0)
+        .count();
   }
 
   // Загадка - объясните почему assert тут всегда верен
@@ -94,5 +76,16 @@ public class Task9 {
     Collections.shuffle(integers);
     Set<Integer> set = new HashSet<>(integers);
     assert snapshot.toString().equals(set.toString());
+
+    /*
+    Вся соль кроется в том, как хэшируется Integer.
+
+    HashSet использует хэш таблицы (вообще основан на HashMap). То есть при добавлении элемента,
+    он вычисляет хэш. Но хэш класса Integer равен значению примитива, поэтому элементы в HashSet оказываются
+    отсортированными.
+
+    То есть
+    assert 555 == Integer.valueOf(555).hashCode()
+    */
   }
 }
